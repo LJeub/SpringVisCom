@@ -1,9 +1,10 @@
 function [x_new, grad_new, step_new,L_new]=BFGS_update(x, grad,step,L,c1,c2,gradient,energy)
 % compute the BFGS update step
-% 
-% Lucas Jeub
-% 21/06/2013
-% jeub@maths.ox.ac.uk
+
+% Version:
+% Date:
+% Author:
+% Email:
 
 
 %This maintains an approximation for the Hessian
