@@ -87,12 +87,11 @@ function [xy,xyc,energy,energy_c]=SpringVisCom(A,S,varargin)
 % "An Algorithm For Drawing General Undirected Graphs"), where nodes are
 % charged particles, such that nodes in different communities repel each
 % other.
-%
-% Version 1.0
-%
-% Lucas Jeub
-% 09/07/2013
-% jeub@maths.ox.ac.uk
+
+% Version:
+% Date:
+% Author:
+% Email:
 
 
 %% check input

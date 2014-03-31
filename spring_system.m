@@ -1,9 +1,10 @@
 classdef spring_system < matlab.mixin.Copyable
-    % SPRING_SYSTEM spring system class for SpringCoordC
-    %
-    % Lucas Jeub
-    % 09/07/2013
-    % jeub@maths.ox.ac.uk
+% SPRING_SYSTEM spring system class for SpringCoordC
+
+% Version:
+% Date:
+% Author:
+% Email:
     
     %% properties
     properties (SetAccess=private)
