@@ -40,12 +40,12 @@ function [h_nodes_out,h_edges_out]=GraphPlot(xy,W,varargin)
 % nodecolors: colormap for coloring nodes (using the weights provided by
 % scores) (defaults to distinguishable colors, with 0 drawn black)
 %
-% nodecolorlim: clim for nodecolorlim (default: [min(SCORES), max(SCORES)])
+% nodecolorlim: clim for nodecolors (default: [min(SCORES), max(SCORES)])
 %
 % edgecolors: colormap for coloring edges using edge weights (defaults to
 % grayscale)
 %
-% edgecolorlim: clim for edgecolors (default: [min(edgeweight),
+% edgecolorlim: clim for edgecolors (default: [min(edgeweight,0),
 % max(edgeweight)])
 %
 % randedges: randomise edge weights: 0: actual egeweights, 1: uniformly random
@@ -59,11 +59,14 @@ function [h_nodes_out,h_edges_out]=GraphPlot(xy,W,varargin)
 % [h_nodes,h_edges]=GRAPHPLOT2D(xy,W,alpha,scores,shapes,pointsize,...)
 % where the order of options is as given above.
 %
-%
-% Last Modified by Lucas Nov 26, 2013, Created by PJM
-%
 % This code uses the distinguishable_colors function available from 
 % http://www.mathworks.co.uk/matlabcentral/fileexchange/29702-generate-maximally-perceptually-distinct-colors
+
+% Version:
+% Date:
+% Author:
+% Email:
+
 
 
 %% Clean input arguments
