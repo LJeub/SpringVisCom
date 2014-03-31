@@ -2,10 +2,10 @@ function rgbmap=colorstr2rgb(colorstring)
 % Convert a color specified by colorstring to rgb map
 % See LineSpec for colorcodes
 
-% Version:
-% Date:
-% Author:
-% Email:
+% Version: 1.1
+% Date: Mon 31 Mar 2014 17:39:40 BST
+% Author: Lucas G. S. Jeub
+% Email: jeub@maths.ox.ac.uk
 
 if ~iscell(colorstring)
     colorstring={colorstring};
