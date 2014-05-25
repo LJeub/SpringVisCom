@@ -15,9 +15,9 @@ function [h_nodes_out,h_edges_out]=GraphPlot(xy,W,varargin)
 % W: Adjacency Matrix for the network
 %
 % Outputs:
-% 
+%
 % h_nodes: vector of node handles
-% h_edges: handle to edges (either a single patch object or individual 
+% h_edges: handle to edges (either a single patch object or individual
 %	lines depending on colour options)
 %
 % Optional Variables: (can be provided as an options struct or key-value
@@ -26,7 +26,12 @@ function [h_nodes_out,h_edges_out]=GraphPlot(xy,W,varargin)
 % alpha: factor for edge strength
 %
 % scores: vector with weights for each node (e.g. communities), used to
-% assign node colors from the colormap given by nodecolors and nodecolorlim
+%       assign node colors from the colormap given by nodecolors and nodecolorlim
+%       If a matrix is given for scores, the column of the matrix are
+%       interpreted as different aspects, and the code draws a pie-chart
+%       for each node, showing a nodes share of each aspect. This can be
+%       useful e.g. for visualising overlapping communities. This variant
+%       ignores the shapes option.
 %
 % shapes: marker shapes for nodes, either a single shape, giving all nodes the
 %     same shape, or a vector of shapes, one for each node. (possible shapes are
@@ -59,7 +64,7 @@ function [h_nodes_out,h_edges_out]=GraphPlot(xy,W,varargin)
 % [h_nodes,h_edges]=GRAPHPLOT2D(xy,W,alpha,scores,shapes,pointsize,...)
 % where the order of options is as given above.
 %
-% This code uses the distinguishable_colors function available from 
+% This code uses the distinguishable_colors function available from
 % http://www.mathworks.co.uk/matlabcentral/fileexchange/29702-generate-maximally-perceptually-distinct-colors
 
 % Version: 1.2
@@ -112,6 +117,9 @@ if ~isempty(varargin)
 end
 % make scores full matrix
 options.scores=full(options.scores);
+if isvector(options.scores)
+    options.scores=options.scores(:);
+end
 
 % optionally randomise edgeweights
 edges(:,3)=(1-options.randedges)*edges(:,3)+max(edges(:,3))*rand(size(edges,1),1)*options.randedges;
@@ -132,7 +140,11 @@ end
 
 % set up nodecolorlim
 if ~isset(options,'nodecolorlim')
-    options.nodecolorlim=[min(min(options.scores),0),max(options.scores)];
+    if size(options.scores,2)==1
+        options.nodecolorlim=[min(min(options.scores),0),max(options.scores)];
+    else
+        options.nodecolorlim=[0,size(options.scores,2)];
+    end
 end
 
 % set up edgecolorlim
@@ -227,16 +239,24 @@ end
 if isset(options,'nodecolors')
     map=options.nodecolors;
 else
-    map=([0,0,0;distinguishable_colors(length(unique(options.scores(options.scores~=0))),{'k','w'})]);
+    if size(options.scores,2)==1
+        map=([0,0,0;distinguishable_colors(length(unique(options.scores(options.scores~=0))),{'k','w'})]);
+    else
+        map=[0,0,0;distinguishable_colors(size(options.scores,2),{'k','w'})];
+    end
 end
 
 if size(map,1)>1
-    [unc,rncind,ncind]=unique(options.scores);
+    if size(options.scores,2)==1
+        unc=unique(options.scores);
+    else
+        unc=1:size(options.scores,2);
+    end
     switch length(unc)
         case size(map,1)
-            nodecolor=@(score) map(ncind(rncind(unc==score)),:);
+            nodecolor=@(score) map(unc==score,:);
         case size(map,1)-1
-            nodecolor=@(score) map(ncind(rncind(unc==score))+1,:);
+            nodecolor=@(score) map(find(unc==score)+1,:);
         otherwise
             nodecolorlim=options.nodecolorlim;
             if nodecolorlim(1)==nodecolorlim(2)
@@ -252,8 +272,15 @@ end
 %switch between 2d or 3d plotting
 switch size(xy,2)
     case 2
-        plot_node=@(xy,color,shape,pointsize) plot(xy(1),xy(2),shape,'markersize',pointsize,'markerfacecolor',color,'markeredgecolor',color);
+        if size(options.scores,2)==1
+            plot_node=@(xy,score,shape,pointsize) plot(xy(1),xy(2),shape,'markersize',pointsize,'markerfacecolor',nodecolor(score),'markeredgecolor',nodecolor(score));
+        else
+            plot_node=@plot_pie;
+        end
     case 3
+        if size(options.scores,2)>1
+            error('pie plot not supported in 3d')
+        end
         n_points=100;
         [xs,ys,zs]=sphere(n_points);
         plot_node=@(xy,color,shape,pointsize) surf(xy(1)+xs*pointsize,xy(2)+ys*pointsize,xy(3)+zs*pointsize,colorarray(color,n_points+1,n_points+1),'edgecolor','none');
@@ -261,15 +288,45 @@ switch size(xy,2)
         error('need 2 or 3 dimensional coordinates');
 end
 
+base_radius=(max(xy(1,:))-min(xy(1,:)))/length(W);
+    function h=plot_pie(xy,score,shape,pointsize)
+        h=hggroup;
+        points=50;
+        radius=pointsize*base_radius;
+        if sum(score)>0
+            shares=score./sum(score);
+            last_t=0;
+            for it_share=find(shares)
+                end_t=last_t+shares(it_share)*points;
+                tlist=[last_t, ceil(last_t):floor(end_t), end_t];
+                xlist=[0,(radius*cos(tlist*2*pi/points)),0]+xy(1);
+                ylist=[0,(radius*sin(tlist*2*pi/points)),0]+xy(2);
+                hp=patch(xlist,ylist,nodecolor(it_share),'EdgeColor','none');
+                set(hp,'userdata',it_share);
+                set(hp,'displayname',num2str(it_share));
+                set(hp,'parent',h);
+                last_t=end_t;
+            end
+        else
+            tlist=0:points;
+            xlist=x+radius*cos(tlist*2*pi/points);
+            ylist=y+radius*sin(tlist*2*pi/points);
+            hp=patch(xlist,ylist,nodecolor(0),'EdgeColor','none');
+            set(hp,'userdata',0)
+            set(hp,'displayname','missing')
+            set(hp,'parent',h);
+        end
+    end
+
 
 %% set up axis
 if ~is_hold
     clf;
-    xy_min=min(xy);
-    xy_max=max(xy);
-    lims(1:2:2*length(xy_min))=xy_min;
-    lims(2:2:2*length(xy_max))=xy_max;
-    axis(1.01*lims);
+    %xy_min=min(xy);
+    %xy_max=max(xy);
+    %lims(1:2:2*length(xy_min))=xy_min;
+    %lims(2:2:2*length(xy_max))=xy_max;
+    %axis(1.01*lims);
     caxis(options.edgecolorlim);
     axis off
     axis equal
@@ -287,9 +344,9 @@ for i=1:N
             case ' '
                 
             case '.'
-                h_nodes(i)=plot_node(xy(i,:),nodecolor(scores(i)),shapes(i,:),point_size(i)*2);
+                h_nodes(i)=plot_node(xy(i,:),scores(i,:),shapes(i,:),point_size(i)*2);
             otherwise
-                h_nodes(i)=plot_node(xy(i,:),nodecolor(scores(i)),shapes(i,:),point_size(i));
+                h_nodes(i)=plot_node(xy(i,:),scores(i,:),shapes(i,:),point_size(i));
         end
     end
 end
@@ -310,25 +367,41 @@ end
 % group nodes with unique score and shape in legend
 plotted=find(point_size>0);
 if ~isempty(plotted)
-[us,~,lind]=unique([options.scores(plotted),double(shapes(plotted))],'rows');
-groups(1:size(us,1))=0;
-for i=1:size(us,1)
-    groups(i)=hggroup;
-    c_nodes= lind==i;
-    set(h_nodes(plotted(c_nodes)),'parent',groups(i));
-end
-annot=get(groups,'annotation');
-if ~iscell(annot)
-    annot={annot};
-end
-for i=1:length(annot)
-    set(groups(i),'Displayname',num2str(us(i)));
-    set(get(annot{i},'legendinformation'),'icondisplaystyle','on');
-end
+    if size(options.scores,2)==1
+    [us,~,lind]=unique([options.scores(plotted),double(shapes(plotted))],'rows');
+    groups(1:size(us,1))=0;
+    for i=1:size(us,1)
+        groups(i)=hggroup;
+        c_nodes= lind==i;
+        set(h_nodes(plotted(c_nodes)),'parent',groups(i));
+    end
+    annot=get(groups,'annotation');
+    if ~iscell(annot)
+        annot={annot};
+    end
+    for i=1:length(annot)
+        set(groups(i),'Displayname',num2str(us(i)));
+        set(get(annot{i},'legendinformation'),'icondisplaystyle','on');
+    end
+    else
+        added=false(size(options.scores,2)+1,1);
+        set(get_h(get_h(h_nodes,'annotation'),'legendinformation'),'icondisplaystyle','children');
+        for i=1:length(h_nodes)
+            patch_handles=get(h_nodes(i),'children');
+            set(get_h(get_h(patch_handles,'annotation'),'legendinformation'),'icondisplaystyle','off');
+            patch_scores=get_h(patch_handles,'userdata');
+            annotation=get_h(patch_handles(~added(patch_scores+1)),'annotation');
+            legend_info=get_h(annotation,'legendinformation');
+            set(legend_info,'icondisplaystyle','on');
+            added(patch_scores+1)=true;
+            
+        end
+    end
 end
 
 %% clean up and output handles if desired
 if ~is_hold
+    axis tight
     hold off
 end
 
@@ -350,4 +423,12 @@ for i=1:m
     end
 end
 end
+
+function value=get_h(handle,property)
+value=get(handle,property);
+if iscell(value)
+    value=cell2mat(value);
+end
+end
+
 
