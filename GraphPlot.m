@@ -99,7 +99,7 @@ is_hold=ishold;
 
 % default options
 options=OptionStruct('alpha',1,'scores',ones(N,1),'shapes','o','pointsize',7,'edgewidth',1,'nodecolors',[],'nodecolorlim',[],...
-    'edgecolors',[],'edgecolorlim',[],'randedges',0,'edgethreshold',0);
+    'edgecolors',[],'edgecolorlim',[],'randedges',0,'edgethreshold',[],'legendlabels',[]);
 
 % parse options
 if ~isempty(varargin)
@@ -123,7 +123,9 @@ end
 
 % optionally randomise edgeweights
 edges(:,3)=(1-options.randedges)*edges(:,3)+max(edges(:,3))*rand(size(edges,1),1)*options.randedges;
-edges=edges(edges(:,3)>options.edgethreshold,:);
+if options.isset('edgethreshold')
+    edges=edges(edges(:,3)>options.edgethreshold,:);
+end
 
 %sort edges to plot smallest weight first
 [~,s]=sort(edges(:,3));
@@ -168,6 +170,7 @@ end
 
 % set up edgewidth
 edgewidth=options.edgewidth;
+
 
 %% set up edge colors and edge plotting function
 if isset(options,'edgecolors')
@@ -250,7 +253,7 @@ if size(map,1)>1
     if size(options.scores,2)==1
         unc=unique(options.scores);
     else
-        unc=1:size(options.scores,2);
+        unc=0:size(options.scores,2);
     end
     switch length(unc)
         case size(map,1)
@@ -303,14 +306,18 @@ base_radius=(max(xy(1,:))-min(xy(1,:)))/length(W);
                 ylist=[0,(radius*sin(tlist*2*pi/points)),0]+xy(2);
                 hp=patch(xlist,ylist,nodecolor(it_share),'EdgeColor','none');
                 set(hp,'userdata',it_share);
-                set(hp,'displayname',num2str(it_share));
+                if options.isset('legendlabels')
+                    set(hp,'displayname',options.legendlabels{it_share});
+                else
+                    set(hp,'displayname',num2str(it_share));
+                end
                 set(hp,'parent',h);
                 last_t=end_t;
             end
         else
             tlist=0:points;
-            xlist=x+radius*cos(tlist*2*pi/points);
-            ylist=y+radius*sin(tlist*2*pi/points);
+            xlist=xy(1)+radius*cos(tlist*2*pi/points);
+            ylist=xy(2)+radius*sin(tlist*2*pi/points);
             hp=patch(xlist,ylist,nodecolor(0),'EdgeColor','none');
             set(hp,'userdata',0)
             set(hp,'displayname','missing')
@@ -321,7 +328,7 @@ base_radius=(max(xy(1,:))-min(xy(1,:)))/length(W);
 
 %% set up axis
 if ~is_hold
-    clf;
+    cla;
     %xy_min=min(xy);
     %xy_max=max(xy);
     %lims(1:2:2*length(xy_min))=xy_min;
@@ -380,13 +387,17 @@ if ~isempty(plotted)
         annot={annot};
     end
     for i=1:length(annot)
-        set(groups(i),'Displayname',num2str(us(i)));
+        if options.isset('legendlabels')
+            set(groups(i),'Displayname',options.legendlabels{i});
+        else
+            set(groups(i),'Displayname',num2str(us(i)));
+        end
         set(get(annot{i},'legendinformation'),'icondisplaystyle','on');
     end
     else
         added=false(size(options.scores,2)+1,1);
-        set(get_h(get_h(h_nodes,'annotation'),'legendinformation'),'icondisplaystyle','children');
-        for i=1:length(h_nodes)
+        set(get_h(get_h(h_nodes(plotted),'annotation'),'legendinformation'),'icondisplaystyle','children');
+        for i=plotted(:)'
             patch_handles=get(h_nodes(i),'children');
             set(get_h(get_h(patch_handles,'annotation'),'legendinformation'),'icondisplaystyle','off');
             patch_scores=get_h(patch_handles,'userdata');
