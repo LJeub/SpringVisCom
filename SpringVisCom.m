@@ -114,7 +114,7 @@ end
 options=OptionStruct('epsilon',.01,'c1',0.0001,'c2',0.9,'community_field',1,...
     'dimension',2,'verbose',false,'optimisation_groups',[],...
     'fixed_nodes',[],'progressive',[],'distance_matrix',false,...
-    'communities_only',false,'background_field',0);
+    'communities_only',false,'background_field',0,'charge_matrix',[]);
 
 %parse input
 options.set(varargin);
@@ -172,9 +172,14 @@ else %group matrix
     charges=charge_matrix(S);
 end
 
-charges=charges*options.community_field+ones(size(charges))*options.background_field;
+if options.isset('charge_matrix')
+    charges=options.charge_matrix;
+else
+
+charges=charges.*(options.community_field(:)*options.community_field(:)')+options.background_field(:)*options.background_field(:)';
 for i=1:length(charges)
     charges(i,i)=0;
+end
 end
 
 % set up optimisation groups if given
