@@ -322,7 +322,7 @@ end
 
 %% compute charge matrix
 function charges=charge_matrix(groups)
-charges=1-div_0(groups*groups',norm2(groups)*norm2(groups)');
+charges=1-(groups*groups')./(norm2(groups)*norm2(groups)'+eps);
 end
 
 %% create optimisation group matrix
