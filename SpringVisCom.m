@@ -281,7 +281,7 @@ nodes=find(optimisation_groups(:,com));
 step=ones(length(L),1);
 
 it=1;
-while max(delta)>epsilon
+while mean(delta)>epsilon
     grad=sp_sys.gradient([],nodes);
     e_old=sp_sys.energy;
     
@@ -307,7 +307,7 @@ while max(delta)>epsilon
     [~,com]=max(delta_com);
     %com=randsample(sp_sys.nc,1,true,delta_com);
     nodes=find(optimisation_groups(:,com));
-    verbose(step(com),e_old-sp_sys.energy,max(delta));
+    verbose(step(com),e_old-sp_sys.energy,mean(delta));
 end
 
 %% output node coordinates
