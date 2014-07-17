@@ -112,7 +112,7 @@ end
 %% option parsing
 %set up defaults
 options=OptionStruct('epsilon',.01,'c1',0.0001,'c2',0.9,'community_field',1,...
-    'dimension',2,'verbose',false,'optimisation_groups',[],...
+    'dimension',2,'verbose',false,'optimisation_groups',randi(round(sqrt(length(A))),length(A),1),...
     'fixed_nodes',[],'progressive',[],'distance_matrix',false,...
     'communities_only',false,'background_field',0,'charge_matrix',[]);
 
@@ -150,7 +150,7 @@ else
 end
 
 % parse group input and set up charge matrix
-optimisation_groups=optimisation_group_matrix(S);
+%optimisation_groups=optimisation_group_matrix(S);
 
 if size(S,2)==1 %group vector
     %clean group vector
@@ -305,7 +305,8 @@ while mean(delta)>epsilon
     delta=norm2(sp_sys.gradient);
     delta_com=(delta'*optimisation_groups)./optimisation_groups_sizes;
     [~,com]=max(delta_com);
-    %com=randsample(sp_sys.nc,1,true,delta_com);
+    %com=randsample(size(optimisation_groups,2),1,true,delta_com);
+    %com=randi(size(optimisation_groups,2));
     nodes=find(optimisation_groups(:,com));
     verbose(step(com),e_old-sp_sys.energy,mean(delta));
 end
