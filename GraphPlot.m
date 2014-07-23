@@ -329,14 +329,16 @@ base_radius=(max(xy(1,:))-min(xy(1,:)))/length(W);
 %% set up axis
 if ~is_hold
     cla;
-    %xy_min=min(xy);
-    %xy_max=max(xy);
-    %lims(1:2:2*length(xy_min))=xy_min;
-    %lims(2:2:2*length(xy_max))=xy_max;
-    %axis(1.01*lims);
+%     xy_min=min(xy);
+%     xy_max=max(xy);
+%     lims(1:2:2*length(xy_min))=xy_min;
+%     lims(2:2:2*length(xy_max))=xy_max;
+%     axis(1.1*lims);
     caxis(options.edgecolorlim);
     axis off
     axis equal
+%     axis tight
+    set(gca,'position',[0,0,1,1])
 end
 hold on
 
@@ -412,7 +414,6 @@ end
 
 %% clean up and output handles if desired
 if ~is_hold
-    axis tight
     hold off
 end
 
