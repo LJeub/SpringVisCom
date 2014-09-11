@@ -183,10 +183,11 @@ end
 end
 
 % set up optimisation groups if given
-if options.isset('optimisation_groups')
-    optimisation_groups=optimisation_group_matrix(options.optimisation_groups);
+if length(options.optimisation_groups)==1
+    options.optimisation_groups=randi(round(options.optimisation_groups),length(A),1);
 end
-
+    
+optimisation_groups=optimisation_group_matrix(options.optimisation_groups);
 % set up fixed nodes
 if options.isset('fixed_nodes')
     optimisation_groups(fixed_nodes(:,1),:)=0;
