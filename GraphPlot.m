@@ -103,7 +103,7 @@ options=OptionStruct('alpha',1,'scores',ones(N,1),'shapes','o','pointsize',7,'ed
 
 % parse options
 if ~isempty(varargin)
-    if ischar(varargin{1})
+    if ischar(varargin{1})||isstruct(varargin{1})
         options.set(varargin);
     else
         % assume old form of function given (backwards compatibility)
