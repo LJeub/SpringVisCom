@@ -206,7 +206,6 @@ else
         edgemap=interp1(linspace(0,1,50).^options.alpha,edgemap,linspace(0,1,50),'pchip');
     end
     
-    
     edgecolor=@(weight) repmat(weight(:)',2,1);
     switch size(xy,2)
         case 2
@@ -292,6 +291,7 @@ switch size(xy,2)
 end
 
 base_radius=(max(xy(1,:))-min(xy(1,:)))/length(W);
+
     function h=plot_pie(xy,score,shape,pointsize)
         
         points=50;
@@ -308,6 +308,7 @@ base_radius=(max(xy(1,:))-min(xy(1,:)))/length(W);
                 ylist=[0,(radius*sin(tlist*2*pi/points)),0]+xy(2);
                 hp=patch(xlist,ylist,nodecolor(it_share(it)),'EdgeColor','none');
                 set(hp,'userdata',it_share(it));
+                set(get(get(hp,'annotation'),'legendinformation'),'icondisplaystyle','off');
                 if options.isset('legendlabels')
                     set(hp,'displayname',options.legendlabels{it_share(it)});
                 else
@@ -323,6 +324,7 @@ base_radius=(max(xy(1,:))-min(xy(1,:)))/length(W);
             hp=patch(xlist,ylist,nodecolor(0),'EdgeColor','none');
             set(hp,'userdata',0)
             set(hp,'displayname','missing')
+            set(get(get(hp,'annotation'),'legendinformation'),'icondisplaysyle','off');
             h=hp;
         end
     end
@@ -399,16 +401,15 @@ if ~isempty(plotted)
         set(get(annot{i},'legendinformation'),'icondisplaystyle','on');
     end
     else
-        added=false(size(options.scores,2)+1,1);
-        legend_info=cell(size(options.scores,2)+1,1);
+        not_in_legend=true(size(options.scores,2)+1,1);
+        missing=any(sum(options.scores,2)==0);
+        if ~missing
+            not_in_legend(1)=false;
+        end  
         patches=cell(size(options.scores,2)+1,1);
-%         annotations=get(h_nodes(plotted),'annotation');
-%         for i=1:length(annotations)
-%             set(get(annotations{i},'legendinformation'),'icondisplaystyle','children');
-%         end
-        
-   %     set(get(get(h_nodes(plotted),'annotation'),'legendinformation'),'icondisplaystyle','children');
-        for i=plotted(:)'
+        pos=1;
+        while any(not_in_legend)&&pos<=length(plotted)
+            i=plotted(pos);
             patch_handles=h_nodes{i};
             if iscell(patch_handles)
                 ref_handle=@(j) patch_handles{j};
@@ -417,25 +418,18 @@ if ~isempty(plotted)
             end
             
             for j=1:length(patch_handles)
-                set(get(get(ref_handle(j),'annotation'),'legendinformation'),'icondisplaystyle','off');
-           
                 patch_scores=get(ref_handle(j),'userdata');
-                if ~added(patch_scores+1)
-                    annotation=get(ref_handle(j),'annotation');
-                    legend_info{patch_scores+1}=get(annotation,'legendinformation');
+                if not_in_legend(patch_scores+1)
+                    set(get(get(ref_handle(j),'annotation'),'legendinformation'),'icondisplaystyle','on');   
                     patches{patch_scores+1}=ref_handle(j);
-                    added(patch_scores+1)=true;
+                    not_in_legend(patch_scores+1)=false;
                 end
             end
+            pos=pos+1;
         end
-        for i=1:length(legend_info)
-            set(legend_info{i},'icondisplaystyle','on');
+        for i=1:length(patches)
             uistack(patches{i},'top')
         end
-%         if isempty(patches{1})
-%             patches=patches(2:end);
-%         end
-%         legend([patches{:}])
     end
 end
 
