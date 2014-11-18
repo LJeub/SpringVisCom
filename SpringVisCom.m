@@ -193,6 +193,9 @@ if options.isset('fixed_nodes')
     optimisation_groups(fixed_nodes(:,1),:)=0;
 end
 optimisation_groups_sizes=sum(optimisation_groups,1);
+non_empty=find(optimisation_groups_sizes>0);
+optimisation_groups=optimisation_groups(:,non_empty);
+optimisation_groups_sizes=optimisation_groups_sizes(non_empty);
 opt_nc=size(optimisation_groups,2);
 
 % set up spring system
