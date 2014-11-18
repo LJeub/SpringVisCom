@@ -127,7 +127,7 @@ dim=options.dimension;
 fixed_nodes=options.fixed_nodes;
 if options.isset('progressive')
     xy=options.progressive;
-    if size(fixed_nodes(:),2)==1
+    if size(fixed_nodes,2)==1
         fixed_nodes=[fixed_nodes(:),xy(fixed_nodes,:)];
     end
     %check no two nodes have same coordinates, otherwise add noise
