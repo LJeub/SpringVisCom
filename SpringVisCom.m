@@ -155,15 +155,15 @@ end
 if size(S,2)==1 %group vector
     %clean group vector
     %nodes coded zero should not belong to any community
-    keep=find(S>0);
+    %keep=find(S>0);
     [uc,~,S]=unique(S);
-    if ismember(0,uc)
-        nc=length(uc)-1;
-        S=S-1;
-    else
+    %if ismember(0,uc)
+    %    nc=length(uc)-1;
+    %    S=S-1;
+    %else
         nc=length(uc);
-    end
-    groups=sparse(keep,S(keep),1,size(S,1),nc);
+    %end
+    groups=sparse(1:size(S,1),S,1,size(S,1),nc);
     charges=charge_matrix(groups);
     
 else %group matrix
