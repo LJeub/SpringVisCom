@@ -78,6 +78,8 @@ function [h_nodes_out,h_edges_out]=GraphPlot(xy,W,varargin)
 % number of nodes
 N=length(W);
 
+base_radius=(max(xy(1,:))-min(xy(1,:)))/length(W);
+
 % check inputs
 if size(xy,1)~=N
     if size(xy,2)==N
@@ -89,8 +91,14 @@ end
 
 % transform adjacency matrix into edge-list
 [indrow,indcol,weight]=find(W);
-ind=find(indcol>indrow);
-edges=[indcol(ind),indrow(ind),weight(ind)];
+if isequal(W,W') % undirected
+    ind=find(indcol>indrow);
+    edges=[indcol(ind),indrow(ind),weight(ind)];
+    directed=false;
+else
+    edges=[indcol,indrow,weight];
+    directed=true;
+end
 
 % check if hold is on
 is_hold=ishold;
@@ -98,23 +106,24 @@ is_hold=ishold;
 %% Set up options
 
 % default options
-options=OptionStruct('alpha',1,'scores',ones(N,1),'shapes','o','pointsize',7,'edgewidth',1,'nodecolors',[],'nodecolorlim',[],...
+options=OptionStruct('alpha',1,'scores',ones(N,1),'shapes','.','pointsize',7,'edgewidth',1,'nodecolors',[],'nodecolorlim',[],...
     'edgecolors',[],'edgecolorlim',[],'randedges',0,'edgethreshold',[],'legendlabels',[]);
 
 % parse options
-if ~isempty(varargin)
-    if ischar(varargin{1})||isstruct(varargin{1})
-        options.set(varargin);
-    else
-        % assume old form of function given (backwards compatibility)
-        names=options.options;
-        input=struct([]);
-        for i=1:length(varargin)
-            input(1).(names{i})=varargin{i};
-        end
-        options.set(input);
-    end
-end
+options.set(varargin);
+% if ~isempty(varargin)
+%     if ischar(varargin{1})||isstruct(varargin{1})
+%         options.set(varargin);
+%     else
+%         % assume old form of function given (backwards compatibility)
+%         names=options.options;
+%         input=struct([]);
+%         for i=1:length(varargin)
+%             input(1).(names{i})=varargin{i};
+%         end
+%         options.set(input);
+%     end
+% end
 % make scores full matrix
 options.scores=full(options.scores);
 if isvector(options.scores)
@@ -205,15 +214,27 @@ else
     if options.alpha~=1
         edgemap=interp1(linspace(0,1,50).^options.alpha,edgemap,linspace(0,1,50),'pchip');
     end
-    
-    edgecolor=@(weight) repmat(weight(:)',2,1);
-    switch size(xy,2)
-        case 2
-            plot_edges=@() patch(reshape(xy(edges(:,1:2),1),size(edges,1),2)',reshape(xy(edges(:,1:2),2),size(edges,1),2)',edgecolor(edges(:,3)),'linewidth',edgewidth,'FaceColor','none','EdgeColor','flat');
-        case 3
-            plot_edges=@() patch(reshape(xy(edges(:,1:2),1),size(edges,1),2)',reshape(xy(edges(:,1:2),2),size(edges,1),2)',reshape(xy(edges(:,1:2),3),size(edges,1),2)',edgecolor(edges(:,3)),'linewidth',edgewidth,'FaceColor','none','EdgeColor','flat');
-        otherwise
-            error('need 2 or 3 dimensional coordinates');
+    if directed
+        edgecolor=@(weight) weight;
+        switch size(xy,2)
+            case 2
+                plot_edges =@plot_edges_fixed_color_2;
+            case 3
+                plot_edges = @plot_edges_fixed_color_3;
+            otherwise
+                error('need 2 or 3 dimensional coordinates');
+        end
+    else
+        
+        edgecolor=@(weight) repmat(weight(:)',2,1);
+        switch size(xy,2)
+            case 2
+                plot_edges=@() patch(reshape(xy(edges(:,1:2),1),size(edges,1),2)',reshape(xy(edges(:,1:2),2),size(edges,1),2)',edgecolor(edges(:,3)),'linewidth',edgewidth,'FaceColor','none','EdgeColor','flat');
+            case 3
+                plot_edges=@() patch(reshape(xy(edges(:,1:2),1),size(edges,1),2)',reshape(xy(edges(:,1:2),2),size(edges,1),2)',reshape(xy(edges(:,1:2),3),size(edges,1),2)',edgecolor(edges(:,3)),'linewidth',edgewidth,'FaceColor','none','EdgeColor','flat');
+            otherwise
+                error('need 2 or 3 dimensional coordinates');
+        end
     end
 end
 
@@ -223,15 +244,27 @@ end
 
     function h=plot_edges_fixed_color_2
         h=zeros(size(edges,1),1);
-        for e=1:size(edges,1)
-            h(e)=plot(xy(edges(e,1:2),1),xy(edges(e,1:2),2),'linewidth',edgewidth,'color',edgecolor(edges(e,3)));
+        if directed
+            for e=1:size(edges,1)
+                h(e)=arrow(xy(edges(e,1:2),1),xy(edges(e,1:2,2)),[0,0],[0,0,1],edgecolor(edges(e,3)),edgewidth*base_radius,point_size(edges(e,2))*base_radius*2.01,point_size(edges(e,2))*base_radius*4);
+            end
+        else
+            for e=1:size(edges,1)
+                h(e)=plot(xy(edges(e,1:2),1),xy(edges(e,1:2),2),'linewidth',edgewidth,'color',edgecolor(edges(e,3)));
+            end
         end
     end
 
     function h=plot_edges_fixed_color_3
         h=zeros(size(edges,1),1);
-        for e=1:size(edges,1)
-            h(e)=plot3(xy(edges(e,1:2),1),xy(edges(e,1:2),2),xy(edges(e,1:2),3),'linewidth',edgewidth,'color',edgecolor(edges(e,3)));
+        if directed
+            for e=1:size(edges,1)
+                h(e)=arrow(xy(edges(e,1:2),1),xy(edges(e,1:2),2),xy(edges(e,1:2),3),[1,0,0],edgecolor(edges(e,3)),edgewidth*base_radius,point_size(edges(e,2))*base_radius*2.01,point_size(edges(e,2))*base_radius*4);
+            end
+        else
+            for e=1:size(edges,1)
+                h(e)=plot3(xy(edges(e,1:2),1),xy(edges(e,1:2),2),xy(edges(e,1:2),3),'linewidth',edgewidth,'color',edgecolor(edges(e,3)));
+            end
         end
     end
 
@@ -281,16 +314,18 @@ switch size(xy,2)
         end
     case 3
         if size(options.scores,2)>1
-            error('pie plot not supported in 3d')
+            plot_node=@plot_pie_3;
+        else
+        %n_points=100;
+        %[xs,ys,zs]=sphere(n_points);
+        %plot_node=@(xy,color,shape,pointsize) surf(xy(1)+xs*pointsize,xy(2)+ys*pointsize,xy(3)+zs*pointsize,colorarray(color,n_points+1,n_points+1),'edgecolor','none');
+        plot_node=@(xy,color,shape,pointsize) plot3(xy(1),xy(2),xy(3),shape,'markersize',pointsize,'markerfacecolor',nodecolor(color),'markeredgecolor',nodecolor(color));
         end
-        n_points=100;
-        [xs,ys,zs]=sphere(n_points);
-        plot_node=@(xy,color,shape,pointsize) surf(xy(1)+xs*pointsize,xy(2)+ys*pointsize,xy(3)+zs*pointsize,colorarray(color,n_points+1,n_points+1),'edgecolor','none');
     otherwise
         error('need 2 or 3 dimensional coordinates');
 end
 
-base_radius=(max(xy(1,:))-min(xy(1,:)))/length(W);
+
 
     function h=plot_pie(xy,score,shape,pointsize)
         
@@ -329,19 +364,56 @@ base_radius=(max(xy(1,:))-min(xy(1,:)))/length(W);
         end
     end
 
+    function h=plot_pie_3(xy,score,shape,pointsize)
+        points=50;
+        radius=pointsize*base_radius;
+        if sum(score)>0
+            shares=score./sum(score);
+            last_t=0;
+            it_share=find(shares);
+            h=zeros(length(it_share),1);
+            for it=1:length(it_share)
+                end_t=last_t+shares(it_share(it))*points;
+                tlist=[last_t, ceil(last_t):floor(end_t), end_t];
+                xlist=[0,(radius*cos(tlist*2*pi/points)),0]+xy(2);
+                ylist=[0,(radius*sin(tlist*2*pi/points)),0]+xy(3);
+                hp=patch(xy(1)*ones(size(xlist)),xlist,ylist,nodecolor(it_share(it)),'EdgeColor','none');
+                set(hp,'userdata',it_share(it));
+                set(get(get(hp,'annotation'),'legendinformation'),'icondisplaystyle','off');
+                if options.isset('legendlabels')
+                    set(hp,'displayname',options.legendlabels{it_share(it)});
+                else
+                    set(hp,'displayname',num2str(it_share(it)));
+                end
+                h(it)=hp;
+                last_t=end_t;
+            end
+        else
+            tlist=0:points;
+            xlist=xy(2)+radius*cos(tlist*2*pi/points);
+            ylist=xy(3)+radius*sin(tlist*2*pi/points);
+            hp=patch(xy(1)*ones(size(xlist)),xlist,ylist,nodecolor(0),'EdgeColor','none');
+            set(hp,'userdata',0)
+            set(hp,'displayname','missing')
+            set(get(get(hp,'annotation'),'legendinformation'),'icondisplaysyle','off');
+            h=hp;
+        end
+    end
+        
+
 
 %% set up axis
 if ~is_hold
     cla;
-%     xy_min=min(xy);
-%     xy_max=max(xy);
-%     lims(1:2:2*length(xy_min))=xy_min;
-%     lims(2:2:2*length(xy_max))=xy_max;
-%     axis(1.1*lims);
+    %     xy_min=min(xy);
+    %     xy_max=max(xy);
+    %     lims(1:2:2*length(xy_min))=xy_min;
+    %     lims(2:2:2*length(xy_max))=xy_max;
+    %     axis(1.1*lims);
     caxis(options.edgecolorlim);
     axis off
     axis equal
-%     axis tight
+    %     axis tight
     set(gca,'position',[0.01,0.01,0.98,0.98])
 end
 hold on
@@ -357,9 +429,9 @@ for i=1:N
             case ' '
                 
             case '.'
-                h_nodes{i}=plot_node(xy(i,:),scores(i,:),shapes(i,:),point_size(i)*2);
+                h_nodes{i}=plot_node(xy(i,:)-2^-10,scores(i,:),shapes(i,:),point_size(i)*2);
             otherwise
-                h_nodes{i}=plot_node(xy(i,:),scores(i,:),shapes(i,:),point_size(i));
+                h_nodes{i}=plot_node(xy(i,:)-2^-10,scores(i,:),shapes(i,:),point_size(i));
         end
     end
 end
@@ -381,31 +453,31 @@ end
 plotted=find(point_size>0);
 if ~isempty(plotted)
     if size(options.scores,2)==1
-    [us,~,lind]=unique([options.scores(plotted),double(shapes(plotted))],'rows');
-    groups(1:size(us,1))=0;
-    for i=1:size(us,1)
-        groups(i)=hggroup;
-        c_nodes= lind==i;
-        set([h_nodes{plotted(c_nodes)}],'parent',groups(i));
-    end
-    annot=get(groups,'annotation');
-    if ~iscell(annot)
-        annot={annot};
-    end
-    for i=1:length(annot)
-        if options.isset('legendlabels')
-            set(groups(i),'Displayname',options.legendlabels{i});
-        else
-            set(groups(i),'Displayname',num2str(us(i)));
+        [us,~,lind]=unique([options.scores(plotted),double(shapes(plotted))],'rows');
+        groups(1:size(us,1))=0;
+        for i=1:size(us,1)
+            groups(i)=hggroup;
+            c_nodes= lind==i;
+            set([h_nodes{plotted(c_nodes)}],'parent',groups(i));
         end
-        set(get(annot{i},'legendinformation'),'icondisplaystyle','on');
-    end
+        annot=get(groups,'annotation');
+        if ~iscell(annot)
+            annot={annot};
+        end
+        for i=1:length(annot)
+            if options.isset('legendlabels')
+                set(groups(i),'Displayname',options.legendlabels{i});
+            else
+                set(groups(i),'Displayname',num2str(us(i)));
+            end
+            set(get(annot{i},'legendinformation'),'icondisplaystyle','on');
+        end
     else
         not_in_legend=true(size(options.scores,2)+1,1);
         missing=any(sum(options.scores,2)==0);
         if ~missing
             not_in_legend(1)=false;
-        end  
+        end
         patches=cell(size(options.scores,2)+1,1);
         pos=1;
         while any(not_in_legend)&&pos<=length(plotted)
@@ -420,7 +492,7 @@ if ~isempty(plotted)
             for j=1:length(patch_handles)
                 patch_scores=get(ref_handle(j),'userdata');
                 if not_in_legend(patch_scores+1)
-                    set(get(get(ref_handle(j),'annotation'),'legendinformation'),'icondisplaystyle','on');   
+                    set(get(get(ref_handle(j),'annotation'),'legendinformation'),'icondisplaystyle','on');
                     patches{patch_scores+1}=ref_handle(j);
                     not_in_legend(patch_scores+1)=false;
                 end
