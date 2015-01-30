@@ -85,7 +85,7 @@ if size(xy,1)~=N
     if size(xy,2)==N
         xy=xy';
     else
-        error('coordinates are of the wrong size for provided adjacency matrix')
+size        error('coordinates are of the wrong size for provided adjacency matrix')
     end
 end
 
@@ -130,16 +130,18 @@ if isvector(options.scores)
     options.scores=options.scores(:);
 end
 
+if ~isempty(edges)
 % optionally randomise edgeweights
 edges(:,3)=(1-options.randedges)*edges(:,3)+max(edges(:,3))*rand(size(edges,1),1)*options.randedges;
 if options.isset('edgethreshold')
     edges=edges(edges(:,3)>options.edgethreshold,:);
 end
 
+
 %sort edges to plot smallest weight first
 [~,s]=sort(edges(:,3));
 edges=edges(s,:);
-
+end
 % parse named colors
 if ischar(options.nodecolors)||iscellstr(options.nodecolors)
     options.nodecolors=colorstr2rgb(options.nodecolors);
@@ -159,8 +161,12 @@ if ~isset(options,'nodecolorlim')
 end
 
 % set up edgecolorlim
+if ~isempty(edges)
 if ~isset(options,'edgecolorlim')
     options.edgecolorlim=[min(min(edges(:,3)),0),max(edges(:,3))];
+end
+else
+    options.edgecolorlim=[0,1];
 end
 
 % set up node shapes
@@ -246,7 +252,7 @@ end
         h=zeros(size(edges,1),1);
         if directed
             for e=1:size(edges,1)
-                h(e)=arrow(xy(edges(e,1:2),1),xy(edges(e,1:2,2)),[0,0],[0,0,1],edgecolor(edges(e,3)),edgewidth*base_radius,point_size(edges(e,2))*base_radius*2.01,point_size(edges(e,2))*base_radius*4);
+                h(e)=arrow(xy(edges(e,1:2),1),xy(edges(e,1:2),2),[0,0],[0,0,1],edgecolor(edges(e,3)),edgewidth*base_radius,point_size(edges(e,2))*base_radius*2.01,point_size(edges(e,2))*base_radius*4);
             end
         else
             for e=1:size(edges,1)
@@ -307,7 +313,7 @@ end
 %switch between 2d or 3d plotting
 switch size(xy,2)
     case 2
-        if size(options.scores,2)==1
+        if size(options.scores,2)==1&&~directed
             plot_node=@(xy,score,shape,pointsize) plot(xy(1),xy(2),shape,'markersize',pointsize,'markerfacecolor',nodecolor(score),'markeredgecolor',nodecolor(score));
         else
             plot_node=@plot_pie;
@@ -359,7 +365,7 @@ end
             hp=patch(xlist,ylist,nodecolor(0),'EdgeColor','none');
             set(hp,'userdata',0)
             set(hp,'displayname','missing')
-            set(get(get(hp,'annotation'),'legendinformation'),'icondisplaysyle','off');
+            set(get(get(hp,'annotation'),'legendinformation'),'icondisplaystyle','off');
             h=hp;
         end
     end
