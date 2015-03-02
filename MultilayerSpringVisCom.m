@@ -30,8 +30,9 @@ for i=1:n_layers
     node_ind(ind)=1:layer_width;
 end
 
-D(isnan(D))=0;
-D(D==inf)=0;
+D(isnan(D))=100;
+D(D==inf)=100;
+D=(D+D')/2;
 
 [~,xy]=SpringVisCom(D,node_ind,'distance_matrix',true,'verbose',true,'communities_only',true,'charge_matrix',C);
 
