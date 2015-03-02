@@ -77,8 +77,8 @@ function [h_nodes_out,h_edges_out]=GraphPlot(xy,W,varargin)
 %% Clean input arguments
 % number of nodes
 N=length(W);
+base_radius=prod(max(xy)-min(xy))/length(W);
 
-base_radius=(max(xy(1,:))-min(xy(1,:)))/length(W);
 
 % check inputs
 if size(xy,1)~=N
@@ -107,10 +107,12 @@ is_hold=ishold;
 
 % default options
 options=OptionStruct('alpha',1,'scores',ones(N,1),'shapes','.','pointsize',7,'edgewidth',1,'nodecolors',[],'nodecolorlim',[],...
-    'edgecolors',[],'edgecolorlim',[],'randedges',0,'edgethreshold',[],'legendlabels',[]);
+    'edgecolors',[],'edgecolorlim',[],'randedges',0,'edgethreshold',[],'legendlabels',[],'baseradius',base_radius);
 
 % parse options
 options.set(varargin);
+
+base_radius=options.baseradius;
 % if ~isempty(varargin)
 %     if ischar(varargin{1})||isstruct(varargin{1})
 %         options.set(varargin);
@@ -252,7 +254,7 @@ end
         h=zeros(size(edges,1),1);
         if directed
             for e=1:size(edges,1)
-                h(e)=arrow(xy(edges(e,1:2),1),xy(edges(e,1:2),2),[0,0],[0,0,1],edgecolor(edges(e,3)),edgewidth*base_radius,point_size(edges(e,2))*base_radius*2.01,point_size(edges(e,2))*base_radius*4);
+                h(e)=arrow(xy(edges(e,1:2),1),xy(edges(e,1:2),2),[0,0],[0,0,1],edgecolor(edges(e,3)),edgewidth*base_radius,point_size(edges(e,2))*base_radius*1.01);
             end
         else
             for e=1:size(edges,1)
@@ -265,7 +267,7 @@ end
         h=zeros(size(edges,1),1);
         if directed
             for e=1:size(edges,1)
-                h(e)=arrow(xy(edges(e,1:2),1),xy(edges(e,1:2),2),xy(edges(e,1:2),3),[1,0,0],edgecolor(edges(e,3)),edgewidth*base_radius,point_size(edges(e,2))*base_radius*2.01,point_size(edges(e,2))*base_radius*4);
+                h(e)=arrow(xy(edges(e,1:2),1),xy(edges(e,1:2),2),xy(edges(e,1:2),3),[1,0,0],edgecolor(edges(e,3)),edgewidth*base_radius*edges(e,3),point_size(edges(e,2))*base_radius*1.01);
             end
         else
             for e=1:size(edges,1)
@@ -322,10 +324,10 @@ switch size(xy,2)
         if size(options.scores,2)>1
             plot_node=@plot_pie_3;
         else
-        %n_points=100;
-        %[xs,ys,zs]=sphere(n_points);
-        %plot_node=@(xy,color,shape,pointsize) surf(xy(1)+xs*pointsize,xy(2)+ys*pointsize,xy(3)+zs*pointsize,colorarray(color,n_points+1,n_points+1),'edgecolor','none');
-        plot_node=@(xy,color,shape,pointsize) plot3(xy(1),xy(2),xy(3),shape,'markersize',pointsize,'markerfacecolor',nodecolor(color),'markeredgecolor',nodecolor(color));
+        n_points=100;
+        [xs,ys,zs]=sphere(n_points);
+        plot_node=@(xy,color,shape,pointsize) surf(xy(1)+xs*pointsize,xy(2)+ys*pointsize,xy(3)+zs*pointsize,colorarray(nodecolor(color),n_points+1,n_points+1),'edgecolor','none');
+        %plot_node=@(xy,color,shape,pointsize) plot3(xy(1),xy(2),xy(3),shape,'markersize',pointsize,'markerfacecolor',nodecolor(color),'markeredgecolor',nodecolor(color));
         end
     otherwise
         error('need 2 or 3 dimensional coordinates');
@@ -401,7 +403,7 @@ end
             hp=patch(xy(1)*ones(size(xlist)),xlist,ylist,nodecolor(0),'EdgeColor','none');
             set(hp,'userdata',0)
             set(hp,'displayname','missing')
-            set(get(get(hp,'annotation'),'legendinformation'),'icondisplaysyle','off');
+            set(get(get(hp,'annotation'),'legendinformation'),'icondisplaystyle','off');
             h=hp;
         end
     end
@@ -434,10 +436,10 @@ for i=1:N
         switch shapes(i,:)
             case ' '
                 
-            case '.'
-                h_nodes{i}=plot_node(xy(i,:)-2^-10,scores(i,:),shapes(i,:),point_size(i)*2);
+%             case '.'
+%                 h_nodes{i}=plot_node(xy(i,:)-2^-10,scores(i,:),shapes(i,:),point_size(i)*2);
             otherwise
-                h_nodes{i}=plot_node(xy(i,:)-2^-10,scores(i,:),shapes(i,:),point_size(i));
+                h_nodes{i}=plot_node(xy(i,:),scores(i,:),shapes(i,:),point_size(i));
         end
     end
 end
