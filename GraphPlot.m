@@ -77,8 +77,8 @@ function [h_nodes_out,h_edges_out]=GraphPlot(xy,W,varargin)
 %% Clean input arguments
 % number of nodes
 N=length(W);
-base_radius=prod(max(xy)-min(xy))/length(W);
-
+base_radius=1;
+AngularResolution=30;
 
 % check inputs
 if size(xy,1)~=N
@@ -264,10 +264,15 @@ end
     end
 
     function h=plot_edges_fixed_color_3
-        h=zeros(size(edges,1),1);
+        %h=cell(size(edges,1),1);
         if directed
             for e=1:size(edges,1)
-                h(e)=arrow(xy(edges(e,1:2),1),xy(edges(e,1:2),2),xy(edges(e,1:2),3),[1,0,0],edgecolor(edges(e,3)),edgewidth*base_radius*edges(e,3),point_size(edges(e,2))*base_radius*1.01);
+                h(e)=arrow3d(xy(edges(e,1:2),1),xy(edges(e,1:2),2),xy(edges(e,1:2),3),...
+                    'Color',edgecolor(edges(e,3)),'LineWidth',edgewidth*base_radius*edges(e,3),...
+                    'HeadOffset',point_size(edges(e,2))*base_radius*1.01,...
+                    'AngularResolution',AngularResolution,...
+                    'HeadLength',5/3*options.pointsize(edges(e,2))/edgewidth/base_radius/edges(e,3),...
+                    'HeadWidth',options.pointsize(edges(e,2))/edgewidth/base_radius/edges(e,3));
             end
         else
             for e=1:size(edges,1)
@@ -324,7 +329,7 @@ switch size(xy,2)
         if size(options.scores,2)>1
             plot_node=@plot_pie_3;
         else
-        n_points=100;
+        n_points=AngularResolution;
         [xs,ys,zs]=sphere(n_points);
         plot_node=@(xy,color,shape,pointsize) surf(xy(1)+xs*pointsize,xy(2)+ys*pointsize,xy(3)+zs*pointsize,colorarray(nodecolor(color),n_points+1,n_points+1),'edgecolor','none');
         %plot_node=@(xy,color,shape,pointsize) plot3(xy(1),xy(2),xy(3),shape,'markersize',pointsize,'markerfacecolor',nodecolor(color),'markeredgecolor',nodecolor(color));
