@@ -85,7 +85,7 @@ if size(xy,1)~=N
     if size(xy,2)==N
         xy=xy';
     else
-size        error('coordinates are of the wrong size for provided adjacency matrix')
+        size        error('coordinates are of the wrong size for provided adjacency matrix')
     end
 end
 
@@ -133,16 +133,16 @@ if isvector(options.scores)
 end
 
 if ~isempty(edges)
-% optionally randomise edgeweights
-edges(:,3)=(1-options.randedges)*edges(:,3)+max(edges(:,3))*rand(size(edges,1),1)*options.randedges;
-if options.isset('edgethreshold')
-    edges=edges(edges(:,3)>options.edgethreshold,:);
-end
-
-
-%sort edges to plot smallest weight first
-[~,s]=sort(edges(:,3));
-edges=edges(s,:);
+    % optionally randomise edgeweights
+    edges(:,3)=(1-options.randedges)*edges(:,3)+max(edges(:,3))*rand(size(edges,1),1)*options.randedges;
+    if options.isset('edgethreshold')
+        edges=edges(edges(:,3)>options.edgethreshold,:);
+    end
+    
+    
+    %sort edges to plot smallest weight first
+    [~,s]=sort(edges(:,3));
+    edges=edges(s,:);
 end
 % parse named colors
 if ischar(options.nodecolors)||iscellstr(options.nodecolors)
@@ -164,9 +164,9 @@ end
 
 % set up edgecolorlim
 if ~isempty(edges)
-if ~isset(options,'edgecolorlim')
-    options.edgecolorlim=[min(min(edges(:,3)),0),max(edges(:,3))];
-end
+    if ~isset(options,'edgecolorlim')
+        options.edgecolorlim=[min(min(edges(:,3)),0),max(edges(:,3))];
+    end
 else
     options.edgecolorlim=[0,1];
 end
@@ -190,64 +190,69 @@ edgewidth=options.edgewidth;
 
 
 %% set up edge colors and edge plotting function
-if isset(options,'edgecolors')
-    edgemap=options.edgecolors;
-    nedgemap=size(edgemap,1);
-    if nedgemap>1
-        if options.alpha~=1
-            edgemap=interp1(linspace(0,1,nedgemap).^options.alpha,edgemap,linspace(0,1,nedgemap),'pchip');
-        end
-        u_weight=unique(edges(:,3));
-        if length(u_weight)==size(edgemap,1)
-            edgecolor = @(weight) edgemap(u_weight==weight,:);
-        else
-            edgecolor = @(weight) interp1(linspace(options.edgecolorlim(1),options.edgecolorlim(2),size(edgemap,1)),edgemap,weight,'nearest');
-            
-        end
-    else
-        edgecolor=@(weight) edgemap;
-    end
+if edgewidth>0
     
-    switch size(xy,2)
-        case 2
-            plot_edges = @plot_edges_fixed_color_2;
-        case 3
-            plot_edges = @plot_edges_fixed_color_3;
-        otherwise
-            error('need 2 or 3 dimensional coordinates');
-    end
-else
-    a=linspace(0.9,.2,size(colormap,1));
-    edgemap=repmat(a',1,3);
-    if options.alpha~=1
-        edgemap=interp1(linspace(0,1,50).^options.alpha,edgemap,linspace(0,1,50),'pchip');
-    end
-    if directed
-        edgecolor=@(weight) weight;
+    if isset(options,'edgecolors')
+        edgemap=options.edgecolors;
+        nedgemap=size(edgemap,1);
+        if nedgemap>1
+            if options.alpha~=1
+                edgemap=interp1(linspace(0,1,nedgemap).^options.alpha,edgemap,linspace(0,1,nedgemap),'pchip');
+            end
+            u_weight=unique(edges(:,3));
+            if length(u_weight)==size(edgemap,1)
+                edgecolor = @(weight) edgemap(u_weight==weight,:);
+            else
+                edgecolor = @(weight) interp1(linspace(options.edgecolorlim(1),options.edgecolorlim(2),size(edgemap,1)),edgemap,weight,'nearest');
+                
+            end
+        else
+            edgecolor=@(weight) edgemap;
+        end
+        
         switch size(xy,2)
             case 2
-                plot_edges =@plot_edges_fixed_color_2;
+                plot_edges = @plot_edges_fixed_color_2;
             case 3
                 plot_edges = @plot_edges_fixed_color_3;
             otherwise
                 error('need 2 or 3 dimensional coordinates');
         end
     else
-        
-        edgecolor=@(weight) repmat(weight(:)',2,1);
-        switch size(xy,2)
-            case 2
-                plot_edges=@() patch(reshape(xy(edges(:,1:2),1),size(edges,1),2)',reshape(xy(edges(:,1:2),2),size(edges,1),2)',edgecolor(edges(:,3)),'linewidth',edgewidth,'FaceColor','none','EdgeColor','flat');
-            case 3
-                plot_edges=@() patch(reshape(xy(edges(:,1:2),1),size(edges,1),2)',reshape(xy(edges(:,1:2),2),size(edges,1),2)',reshape(xy(edges(:,1:2),3),size(edges,1),2)',edgecolor(edges(:,3)),'linewidth',edgewidth,'FaceColor','none','EdgeColor','flat');
-            otherwise
-                error('need 2 or 3 dimensional coordinates');
+        a=linspace(0.9,.2,size(colormap,1));
+        edgemap=repmat(a',1,3);
+        if options.alpha~=1
+            edgemap=interp1(linspace(0,1,50).^options.alpha,edgemap,linspace(0,1,50),'pchip');
+        end
+        if directed
+            edgecolor=@(weight) weight;
+            switch size(xy,2)
+                case 2
+                    plot_edges =@plot_edges_fixed_color_2;
+                case 3
+                    plot_edges = @plot_edges_fixed_color_3;
+                otherwise
+                    error('need 2 or 3 dimensional coordinates');
+            end
+        else
+            
+            edgecolor=@(weight) repmat(weight(:)',2,1);
+            switch size(xy,2)
+                case 2
+                    plot_edges=@() patch(reshape(xy(edges(:,1:2),1),size(edges,1),2)',reshape(xy(edges(:,1:2),2),size(edges,1),2)',edgecolor(edges(:,3)),'linewidth',edgewidth,'FaceColor','none','EdgeColor','flat');
+                case 3
+                    plot_edges=@() patch(reshape(xy(edges(:,1:2),1),size(edges,1),2)',reshape(xy(edges(:,1:2),2),size(edges,1),2)',reshape(xy(edges(:,1:2),3),size(edges,1),2)',edgecolor(edges(:,3)),'linewidth',edgewidth,'FaceColor','none','EdgeColor','flat');
+                otherwise
+                    error('need 2 or 3 dimensional coordinates');
+            end
         end
     end
-end
-
-if ~is_hold
-    colormap(edgemap);
+    
+    if ~is_hold
+        colormap(edgemap);
+    end
+else
+    plot_edges=@() [];
 end
 
     function h=plot_edges_fixed_color_2
@@ -329,10 +334,10 @@ switch size(xy,2)
         if size(options.scores,2)>1
             plot_node=@plot_pie_3;
         else
-        n_points=AngularResolution;
-        [xs,ys,zs]=sphere(n_points);
-        plot_node=@(xy,color,shape,pointsize) surf(xy(1)+xs*pointsize,xy(2)+ys*pointsize,xy(3)+zs*pointsize,colorarray(nodecolor(color),n_points+1,n_points+1),'edgecolor','none');
-        %plot_node=@(xy,color,shape,pointsize) plot3(xy(1),xy(2),xy(3),shape,'markersize',pointsize,'markerfacecolor',nodecolor(color),'markeredgecolor',nodecolor(color));
+            n_points=AngularResolution;
+            [xs,ys,zs]=sphere(n_points);
+            plot_node=@(xy,color,shape,pointsize) surf(xy(1)+xs*pointsize,xy(2)+ys*pointsize,xy(3)+zs*pointsize,colorarray(nodecolor(color),n_points+1,n_points+1),'edgecolor','none');
+            %plot_node=@(xy,color,shape,pointsize) plot3(xy(1),xy(2),xy(3),shape,'markersize',pointsize,'markerfacecolor',nodecolor(color),'markeredgecolor',nodecolor(color));
         end
     otherwise
         error('need 2 or 3 dimensional coordinates');
@@ -412,7 +417,7 @@ end
             h=hp;
         end
     end
-        
+
 
 
 %% set up axis
@@ -441,8 +446,8 @@ for i=1:N
         switch shapes(i,:)
             case ' '
                 
-%             case '.'
-%                 h_nodes{i}=plot_node(xy(i,:)-2^-10,scores(i,:),shapes(i,:),point_size(i)*2);
+                %             case '.'
+                %                 h_nodes{i}=plot_node(xy(i,:)-2^-10,scores(i,:),shapes(i,:),point_size(i)*2);
             otherwise
                 h_nodes{i}=plot_node(xy(i,:),scores(i,:),shapes(i,:),point_size(i));
         end
