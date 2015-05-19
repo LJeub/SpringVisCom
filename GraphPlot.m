@@ -85,7 +85,7 @@ if size(xy,1)~=N
     if size(xy,2)==N
         xy=xy';
     else
-        size        error('coordinates are of the wrong size for provided adjacency matrix')
+        error('coordinates are of the wrong size for provided adjacency matrix')
     end
 end
 
