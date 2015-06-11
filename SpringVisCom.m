@@ -138,7 +138,7 @@ if options.isset('progressive')
         uxy=unique(xy,'rows');
     end
 else
-    xy=rand(length(A),dim);
+    xy=[];
 end
 
 %switch verbose output on or off
@@ -211,7 +211,7 @@ sp_sys=spring_system(distances,charges,groups,fixed_nodes);
 
 % initialise community coordinates
 if ~options.isset('progressive')
-    xyc=rand(sp_sys.nc,dim);
+    xyc=rand(sp_sys.nc,dim)*max(distances(:));
 elseif options.communities_only
     xyc=options.progressive;
 else
@@ -261,6 +261,10 @@ if ~isempty(xyc)
             xy(ind,:)=repmat(xyc(i,:),length(ind),1)+randn(length(ind),dim)*.01;
         end
     end
+end
+
+if isempty(xy)
+    xy=rand(sp_sy.n,dim)*max(distances(:));
 end
 
 
