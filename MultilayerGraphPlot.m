@@ -64,14 +64,15 @@ zmin=(zmin-options.axispadding(3));
 zmax=max(xyl(:,3));
 zmax=(zmax+options.axispadding(3));
 
-axis([xmin,xmax,ymin,ymax,zmin,zmax]);
+
 
 for i=1:n_layers
     patch_h(i)=patch([i,i,i,i]/aspect_ratio(1),[ymin,ymax,ymax,ymin],[zmin,zmin,zmax,zmax],options.layercolor,'linestyle','none');
 end
 set(patch_h,'facealpha',options.layeralpha);
 axis equal
-
+axis([xmin,xmax,ymin,ymax,zmin,zmax]);
+set(gca,'clipping','off')
 if options.isset('layerlabels')
 %     set(gca,'xtick',xmin:xmax)
 %     set(gca,'xticklabel',options.layerlabels);
@@ -81,7 +82,9 @@ if options.isset('layerlabels')
 %     axis on
 
     for i=1:length(options.layerlabels)
-        text(i/aspect_ratio(1)+options.axispadding(1),ymax+options.axispadding(2),zmin-options.axispadding(3),options.layerlabels{i},'HorizontalAlignment','left','VerticalAlignment','top','rotation',options.labelrotation,'Fontname',options.labelfont);
+        text(i/aspect_ratio(1),ymax,zmin,options.layerlabels{i},....
+            'HorizontalAlignment','left','VerticalAlignment','cap',...
+            'rotation',options.labelrotation,'Fontname',options.labelfont);
     end
 end
 
