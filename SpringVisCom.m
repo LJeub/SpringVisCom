@@ -176,7 +176,10 @@ if options.isset('charge_matrix')
     charges=options.charge_matrix;
 else
 
-charges=charges.*(options.community_field(:)*options.community_field(:)')+options.background_field(:)*options.background_field(:)';
+    background=ones(size(A));
+    background(A>0)=0;
+charges=charges.*(options.community_field(:)*options.community_field(:)')+...
+    options.background_field(:)*options.background_field(:)'.*background;
 for i=1:length(charges)
     charges(i,i)=0;
 end
