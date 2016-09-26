@@ -292,9 +292,7 @@ nodes=find(optimisation_groups(:,com));
 step=ones(length(L),1);
 
 it=1;
-% delta_init=mean(delta);
-% wbar=waitbar((mean(delta)-epsilon)/(delta_init-epsilon),'step = 0');
-while mean(delta_com)>epsilon
+while mean(delta)>epsilon
     grad=sp_sys.gradient([],nodes);
     e_old=sp_sys.energy;
     
