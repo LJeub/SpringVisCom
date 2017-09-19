@@ -70,7 +70,6 @@ classdef OptionStruct < matlab.mixin.Copyable
                         obj.options=input;
                     elseif ischar(input)
                         %single option
-                        ischar(input)
                         obj.options={input};
                     else
                         if ~mod(length(input),2)
