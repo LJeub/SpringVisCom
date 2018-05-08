@@ -111,13 +111,27 @@ end
 
 %% option parsing
 %set up defaults
-options=OptionStruct('epsilon',.01,'c1',0.0001,'c2',0.9,'community_field',1,...
-    'dimension',2,'verbose',false,'optimisation_groups',randi(round(sqrt(length(A))),length(A),1),...
-    'fixed_nodes',[],'progressive',[],'distance_matrix',false,...
-    'communities_only',false,'background_field',0,'charge_matrix',[]);
+parseArgs=inputParser();
+addParameter(parseArgs,'epsilon',.01);
+addParameter(parseArgs,'c1',0.0001);
+addParameter(parseArgs,'c2',0.9);
+addParameter(parseArgs,'community_field',1);
+addParameter(parseArgs,'dimension',2);
+addParameter(parseArgs,'verbose',false);
+addParameter(parseArgs,'optimisation_groups',randi(round(sqrt(length(A))),length(A),1));
+addParameter(parseArgs,'fixed_nodes',[]);
+addParameter(parseArgs,'progressive',[]);
+addParameter(parseArgs,'distance_matrix',false);
+addParameter(parseArgs,'communities_only',false);
+addParameter(parseArgs,'background_field',0);
+addParameter(parseArgs,'charge_matrix',[]);
+
 
 %parse input
-options.set(varargin);
+parse(parseArgs,varargin{:})
+options=parseArgs.Results;
+options.isset=@(opt) ~isempty(options.(opt));
+
 
 %set local variables for speed
 c1=options.c1;

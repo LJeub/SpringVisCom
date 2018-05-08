@@ -58,12 +58,6 @@ function [h_nodes_out,h_edges_out]=GraphPlot(xy,W,varargin)
 % edgethreshold: ignore edges below this weight (after randomised
 % edgeweights)
 %
-%
-% Alternatively use function call:
-%
-% [h_nodes,h_edges]=GRAPHPLOT2D(xy,W,alpha,scores,shapes,pointsize,...)
-% where the order of options is as given above.
-%
 % This code uses the distinguishable_colors function available from
 % http://www.mathworks.co.uk/matlabcentral/fileexchange/29702-generate-maximally-perceptually-distinct-colors
 
@@ -104,13 +98,34 @@ end
 is_hold=ishold;
 
 %% Set up options
-
-% default options
-options=OptionStruct('alpha',1,'scores',ones(N,1),'shapes','.','pointsize',7,'edgewidth',1,'nodecolors',[],'nodecolorlim',[],...
-    'edgecolors',[],'edgecolorlim',[],'randedges',0,'edgethreshold',[],'legendlabels',[],'baseradius',base_radius);
+parseArgs=inputParser();
+addParameter(parseArgs,'alpha',1);
+addParameter(parseArgs,'scores',ones(N,1));
+addParameter(parseArgs,'shapes','.');
+addParameter(parseArgs,'pointsize',7);
+addParameter(parseArgs,'edgewidth',1);
+addParameter(parseArgs,'nodecolors',[]);
+addParameter(parseArgs,'nodecolorlim',[]);
+addParameter(parseArgs,'edgecolors',[]);
+addParameter(parseArgs,'edgecolorlim',[]);
+addParameter(parseArgs,'randedges',0);
+addParameter(parseArgs,'edgethreshold',[]);
+addParameter(parseArgs,'legendlabels',[]);
+addParameter(parseArgs,'baseradius',[]);
+addParameter(parseArgs,'axispadding',0.1);
+addParameter(parseArgs,'aspectratio',[1,1,1]);
+switch size(xy,2)
+    case 2
+        addParameter(parseArgs,'view',2);
+    case 3
+        addParameter(parseArgs,'view',3);
+end
 
 % parse options
-options.set(varargin);
+parse(parseArgs,varargin{:});
+options=parseArgs.Results;
+options.isset=@(opt) ~isempty(options.(opt));
+
 
 base_radius=options.baseradius;
 % if ~isempty(varargin)
@@ -154,7 +169,7 @@ if ischar(options.edgecolors)||iscellstr(options.edgecolors)
 end
 
 % set up nodecolorlim
-if ~isset(options,'nodecolorlim')
+if isempty(options.nodecolorlim)
     if size(options.scores,2)==1
         options.nodecolorlim=[min(min(options.scores),0),max(options.scores)];
     else
@@ -164,7 +179,7 @@ end
 
 % set up edgecolorlim
 if ~isempty(edges)
-    if ~isset(options,'edgecolorlim')
+    if isempty(options.edgecolorlim)
         options.edgecolorlim=[min(min(edges(:,3)),0),max(edges(:,3))];
     end
 else
@@ -192,7 +207,7 @@ edgewidth=options.edgewidth;
 %% set up edge colors and edge plotting function
 if edgewidth>0
     
-    if isset(options,'edgecolors')
+    if ~isempty(options.edgecolors)
         edgemap=options.edgecolors;
         nedgemap=size(edgemap,1);
         if nedgemap>1
@@ -289,7 +304,7 @@ end
 
 
 %% set up node colors and node plotting function
-if isset(options,'nodecolors')
+if ~isempty(options.nodecolors)
     map=options.nodecolors;
 else
     if size(options.scores,2)==1

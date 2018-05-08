@@ -3,9 +3,22 @@ layer_width=length(A{1});
 n_layers=length(A);
 N=layer_width*n_layers;
 
-options=OptionStruct('alpha',1,'scores',ones(N,1),'shapes','.','pointsize',7,'edgewidth',1,'nodecolors',[],'nodecolorlim',[],...
-    'edgecolors',[],'edgecolorlim',[],'randedges',0,'edgethreshold',[],'legendlabels',[],'axispadding',0.1,'layercolor',[0.5,0.5,0.5],'layerlabels',[],'labelrotation',30,'labelfont','Times','layeralpha',0.1,'aspectratio',[1,1,1],'view',[-15,30],'baseradius',1);
-options=options.set(varargin);
+parseArgs=inputParser();
+parseArgs.KeepUnmatched=true;
+addParameter(parseArgs,'axispadding',0.1);
+addParameter(parseArgs,'layercolor',[0.5,0.5,0.5]);
+addParameter(parseArgs,'layeralpha',0.1);
+addParameter(parseArgs,'layerlabels',[]);
+addParameter(parseArgs,'labelfont','Helvetica');
+addParameter(parseArgs,'labelrotation',30);
+addParameter(parseArgs,'aspectratio',[1,1,1]);
+addParameter(parseArgs,'view',[-15,30]);
+addParameter(parseArgs,'scores',[]);
+
+parse(parseArgs,varargin{:});
+options=parseArgs.Results;
+options.isset=@(opt) ~isempty(options.(opt));
+plot_options=parseArgs.Unmatched;
 
 aspect_ratio=options.aspectratio;
 options.axispadding=options.axispadding./aspect_ratio;
@@ -31,26 +44,20 @@ k=sum(AS+AS');
 
 
 options.pointsize=options.pointsize(:);
+%options.pointsize=options.pointsize(:);
 %options.pointsize=options.pointsize*double(logical(k));
 
 if iscell(options.scores)
-    scores=[];
+    plot_options.scores=[];
     for i=1:length(options.scores)
-        scores=[scores;options.scores{i}];
+        plot_options.scores=[plot_options.scores;options.scores{i}];
     end
-    options.scores=scores;
 else
-    options.scores=options.scores(:);
-    if length(options.scores)<N
-        options.scores=sparse(options.scores,1,1,N,1);
+    plot_options.scores=options.scores(:);
+    if length(plot_options.scores)<N
+        plot_options.scores=sparse(plot_options.scores,1,1,N,1);
     end
 end
-
-plot_options=options.struct;
-plot_options=rmfield(plot_options,{'axispadding','layercolor','layeralpha','layerlabels','labelrotation','aspectratio','view','labelfont'});
-GraphPlot(xyl,AS,plot_options);
-
-
 
 view(options.view);
 xmin=1/aspect_ratio(1)-options.axispadding(1);
@@ -90,4 +97,4 @@ end
 
 set(gca,'ydir','reverse')
 
-    
+

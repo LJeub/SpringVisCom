@@ -1,7 +1,14 @@
 function xy=MultilayerSpringVisCom(A,S,varargin)
 
+parseArgs=inputParser();
+parseArgs.KeepUnmatched=true;
+addParameter(parseArgs,'background_field',0);
+addParameter(parseArgs,'community_field',1);
+addParameter(parseArgs,'distance_matrix',false);
+parse(parseArgs,varargin{:});
 
-
+options=parseArgs.Results;
+other_options=parseArgs.Unmatched;
 n_layers=length(A);
 layer_width=length(A{1});
 
@@ -34,7 +41,8 @@ D(isnan(D))=100;
 D(D==inf)=100;
 D=(D+D')/2;
 
-[~,xy]=SpringVisCom(D,node_ind,'distance_matrix',true,'verbose',true,'communities_only',true,'charge_matrix',C);
+[~,xy]=SpringVisCom(D,node_ind,'distance_matrix',true,...
+    'communities_only',true,'charge_matrix',C, other_options);
 
 
     function distances=distance_matrix(A)
