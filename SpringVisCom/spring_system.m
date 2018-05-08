@@ -1,6 +1,5 @@
 classdef spring_system < matlab.mixin.Copyable
-% SPRING_SYSTEM spring system class for SpringCoordC
-
+% SPRING_SYSTEM spring system class for SpringVisCom
 % Version: 1.2
 % Date: Tue 13 May 2014 17:03:19 BST
 % Author: Lucas G. S. Jeub
