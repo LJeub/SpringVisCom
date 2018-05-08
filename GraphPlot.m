@@ -71,7 +71,6 @@ function [h_nodes_out,h_edges_out]=GraphPlot(xy,W,varargin)
 %% Clean input arguments
 % number of nodes
 N=length(W);
-base_radius=1;
 AngularResolution=30;
 
 % check inputs
@@ -90,7 +89,16 @@ if isequal(W,W') % undirected
     edges=[indcol(ind),indrow(ind),weight(ind)];
     directed=false;
 else
-    edges=[indcol,indrow,weight];
+    Ws = (W+W');
+    [bidir_row, bidir_col]=find(min(W,W')>0);
+    weight=full(Ws(min(W,W')>0));
+    ind=find(bidir_col>bidir_row);
+    edges=[bidir_col(ind),bidir_row(ind),weight(ind),true(length(ind),1)];
+    [unidir_row, unidir_col]=find(min(W,W')==0 & max(W,W')>0);
+    weight=full(W(min(W,W')==0 & max(W,W')>0));
+    ind=find(weight>0);
+    edges=[edges;...
+        unidir_col(ind),unidir_row(ind),weight(ind),false(length(ind),1)];
     directed=true;
 end
 
@@ -127,7 +135,6 @@ options=parseArgs.Results;
 options.isset=@(opt) ~isempty(options.(opt));
 
 
-base_radius=options.baseradius;
 % if ~isempty(varargin)
 %     if ischar(varargin{1})||isstruct(varargin{1})
 %         options.set(varargin);
@@ -203,6 +210,39 @@ end
 % set up edgewidth
 edgewidth=options.edgewidth;
 
+% set up axis padding
+if length(options.axispadding)==1
+    options.axispadding=repmat(options.axispadding,size(xy,2),1);
+end
+
+% rescale coordinates based on aspect ratio
+for i=1:size(xy,2)
+    xy(:,i)=xy(:,i)/options.aspectratio(i);
+end
+
+% set up axis limits
+limits=zeros(size(xy,2)*2,1);
+for i=1:size(xy,2)
+    limits(2*i-1)=min(xy(:,i))-options.axispadding(i);
+    limits(2*i)=max(xy(:,i))+options.axispadding(i);
+end
+
+%% set up axis
+if ~is_hold
+    cla;
+    caxis(options.edgecolorlim);
+    view(options.view);
+    axis(limits);
+    set(gca,'clipping','off')
+    axis off
+    axis equal
+    set(gca,'position',[0.01,0.01,0.98,0.98])
+end
+hold on
+if isempty(options.baseradius)
+    options.baseradius=scale3D(gca);
+end
+base_radius=options.baseradius;
 
 %% set up edge colors and edge plotting function
 if edgewidth>0
@@ -271,10 +311,24 @@ else
 end
 
     function h=plot_edges_fixed_color_2
-        h=zeros(size(edges,1),1);
         if directed
+            h=cell(size(edges,1),1);
             for e=1:size(edges,1)
-                h(e)=arrow(xy(edges(e,1:2),1),xy(edges(e,1:2),2),[0,0],[0,0,1],edgecolor(edges(e,3)),edgewidth*base_radius,point_size(edges(e,2))*base_radius*1.01);
+                if edges(e,4)
+                    h{e}=doublearrow3d(xy(edges(e,1:2),1),xy(edges(e,1:2),2),[0,0],...
+                        'Color',edgecolor(edges(e,3)),'LineWidth',edgewidth*base_radius*edges(e,3),...
+                        'HeadOffset',point_size(edges(e,2))*base_radius,...
+                        'AngularResolution',2,...
+                        'HeadLength',5/3*point_size(edges(e,2))*base_radius,...
+                        'HeadWidth',point_size(edges(e,2))*base_radius);
+                else
+                    h{e}=arrow3d(xy(edges(e,1:2),1),xy(edges(e,1:2),2),[0,0],...
+                        'Color',edgecolor(edges(e,3)),'LineWidth',edgewidth*base_radius*edges(e,3),...
+                        'HeadOffset',point_size(edges(e,2))*base_radius,...
+                        'AngularResolution',2,...
+                        'HeadLength',5/3*point_size(edges(e,2))*base_radius,...
+                        'HeadWidth',point_size(edges(e,2))*base_radius);
+                end
             end
         else
             for e=1:size(edges,1)
@@ -286,13 +340,23 @@ end
     function h=plot_edges_fixed_color_3
         %h=cell(size(edges,1),1);
         if directed
+            h=cell(size(edges,1),1);
             for e=1:size(edges,1)
-                h(e)=arrow3d(xy(edges(e,1:2),1),xy(edges(e,1:2),2),xy(edges(e,1:2),3),...
+                if edges(e,4)
+                    h{e}=doublearrow3d(xy(edges(e,1:2),1),xy(edges(e,1:2),2),xy(edges(e,1:2),3),...
                     'Color',edgecolor(edges(e,3)),'LineWidth',edgewidth*base_radius*edges(e,3),...
-                    'HeadOffset',point_size(edges(e,2))*base_radius*1.01,...
+                    'HeadOffset',point_size(edges(e,2))*base_radius,...
                     'AngularResolution',AngularResolution,...
-                    'HeadLength',5/3*options.pointsize(edges(e,2))/edgewidth/base_radius/edges(e,3),...
-                    'HeadWidth',options.pointsize(edges(e,2))/edgewidth/base_radius/edges(e,3));
+                    'HeadLength',5/3*point_size(edges(e,2))*base_radius,...
+                    'HeadWidth',point_size(edges(e,2))*base_radius);
+                else
+                    h{e}=arrow3d(xy(edges(e,1:2),1),xy(edges(e,1:2),2),xy(edges(e,1:2),3),...
+                        'Color',edgecolor(edges(e,3)),'LineWidth',edgewidth*base_radius*edges(e,3),...
+                        'HeadOffset',point_size(edges(e,2))*base_radius,...
+                        'AngularResolution',AngularResolution,...
+                        'HeadLength',5/3*point_size(edges(e,2))*base_radius,...
+                        'HeadWidth',point_size(edges(e,2))*base_radius);
+                end
             end
         else
             for e=1:size(edges,1)
@@ -341,7 +405,7 @@ end
 switch size(xy,2)
     case 2
         if size(options.scores,2)==1&&~directed
-            plot_node=@(xy,score,shape,pointsize) plot(xy(1),xy(2),shape,'markersize',pointsize,'markerfacecolor',nodecolor(score),'markeredgecolor',nodecolor(score));
+            plot_node=@(xy,score,shape,pointsize) plot(xy(1),xy(2),shape,'markersize',pointsize*2,'markerfacecolor',nodecolor(score),'markeredgecolor',nodecolor(score));
         else
             plot_node=@plot_pie;
         end
@@ -351,7 +415,7 @@ switch size(xy,2)
         else
             n_points=AngularResolution;
             [xs,ys,zs]=sphere(n_points);
-            plot_node=@(xy,color,shape,pointsize) surf(xy(1)+xs*pointsize,xy(2)+ys*pointsize,xy(3)+zs*pointsize,colorarray(nodecolor(color),n_points+1,n_points+1),'edgecolor','none');
+            plot_node=@(xy,color,shape,pointsize) surf(xy(1)+xs*pointsize*base_radius,xy(2)+ys*pointsize*base_radius,xy(3)+zs*pointsize*base_radius,colorarray(nodecolor(color),n_points+1,n_points+1),'edgecolor','none');
             %plot_node=@(xy,color,shape,pointsize) plot3(xy(1),xy(2),xy(3),shape,'markersize',pointsize,'markerfacecolor',nodecolor(color),'markeredgecolor',nodecolor(color));
         end
     otherwise
@@ -374,7 +438,8 @@ end
                 tlist=[last_t, ceil(last_t):floor(end_t), end_t];
                 xlist=[0,(radius*cos(tlist*2*pi/points)),0]+xy(1);
                 ylist=[0,(radius*sin(tlist*2*pi/points)),0]+xy(2);
-                hp=patch(xlist,ylist,nodecolor(it_share(it)),'EdgeColor','none');
+                zlist=ones(size(xlist));
+                hp=patch(xlist,ylist,zlist,nodecolor(it_share(it)),'EdgeColor','none');
                 set(hp,'userdata',it_share(it));
                 set(get(get(hp,'annotation'),'legendinformation'),'icondisplaystyle','off');
                 if options.isset('legendlabels')
@@ -435,21 +500,7 @@ end
 
 
 
-%% set up axis
-if ~is_hold
-    cla;
-    %     xy_min=min(xy);
-    %     xy_max=max(xy);
-    %     lims(1:2:2*length(xy_min))=xy_min;
-    %     lims(2:2:2*length(xy_max))=xy_max;
-    %     axis(1.1*lims);
-    caxis(options.edgecolorlim);
-    axis off
-    axis equal
-    %     axis tight
-    set(gca,'position',[0.01,0.01,0.98,0.98])
-end
-hold on
+
 
 %% plot the edges and nodes
 h_edges=plot_edges();
@@ -473,15 +524,20 @@ end
 %% set up legend
 
 % remove edges from legend
-edge_annotation=get(h_edges,'Annotation');
-if iscell(edge_annotation)
-    for i=1:length(edge_annotation)
-        set(get(edge_annotation{i},'legendinformation'),'Icondisplaystyle','off');
+if iscell(h_edges)
+    for i=1:length(h_edges)
+        set(get(get(h_edges{i},'Annotation'),'legendinformation'),'Icondisplaystyle','off');
     end
 else
-    set(get(edge_annotation,'legendinformation'),'Icondisplaystyle','off');
+    edge_annotation=get(h_edges,'Annotation');
+    if iscell(edge_annotation)
+        for i=1:length(edge_annotation)
+            set(get(edge_annotation{i},'legendinformation'),'Icondisplaystyle','off');
+        end
+    else
+        set(get(edge_annotation,'legendinformation'),'Icondisplaystyle','off');
+    end
 end
-
 % group nodes with unique score and shape in legend
 plotted=find(point_size>0);
 if ~isempty(plotted)
