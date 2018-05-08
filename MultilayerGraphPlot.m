@@ -14,6 +14,7 @@ addParameter(parseArgs,'labelrotation',30);
 addParameter(parseArgs,'aspectratio',[1,1,1]);
 addParameter(parseArgs,'view',[-15,30]);
 addParameter(parseArgs,'scores',[]);
+addParameter(parseArgs,'drawlayers',true);
 
 parse(parseArgs,varargin{:});
 options=parseArgs.Results;
@@ -43,7 +44,6 @@ AS=sparse(Ai,Aj,Av,N,N);
 k=sum(AS+AS');
 
 
-options.pointsize=options.pointsize(:);
 %options.pointsize=options.pointsize(:);
 %options.pointsize=options.pointsize*double(logical(k));
 
@@ -70,24 +70,23 @@ zmin=min(xyl(:,3));
 zmin=(zmin-options.axispadding(3));
 zmax=max(xyl(:,3));
 zmax=(zmax+options.axispadding(3));
+axis equal
+axis([xmin,xmax,ymin,ymax,zmin,zmax]);
+set(gca,'clipping','off')
+hold on
+GraphPlot(xyl,AS,plot_options);
 
-
-
-for i=1:n_layers
-    patch_h(i)=patch([i,i,i,i]/aspect_ratio(1),[ymin,ymax,ymax,ymin],[zmin,zmin,zmax,zmax],options.layercolor,'linestyle','none');
+if options.drawlayers
+    for i=1:n_layers
+        patch_h(i)=patch([i,i,i,i]/aspect_ratio(1),[ymin,ymax,ymax,ymin],...
+            [zmin,zmin,zmax,zmax],options.layercolor,'linestyle','none');
+    end
+    set(patch_h,'facealpha',options.layeralpha);
 end
-set(patch_h,'facealpha',options.layeralpha);
 axis equal
 axis([xmin,xmax,ymin,ymax,zmin,zmax]);
 set(gca,'clipping','off')
 if options.isset('layerlabels')
-%     set(gca,'xtick',xmin:xmax)
-%     set(gca,'xticklabel',options.layerlabels);
-%     set(gca,'xticklabelrotation',-45)
-%     set(gca,'ytick',[])
-%     set(gca,'ztick',[])
-%     axis on
-
     for i=1:length(options.layerlabels)
         text(i/aspect_ratio(1),ymax,zmin,options.layerlabels{i},....
             'HorizontalAlignment','left','VerticalAlignment','cap',...
