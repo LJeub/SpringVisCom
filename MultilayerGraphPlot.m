@@ -147,8 +147,9 @@ else
         plot_options.scores=sparse(plot_options.scores,1,1,N,1);
     end
 end
+plot_options.axispadding=options.axispadding;
+plot_options.view=options.view;
 
-view(options.view);
 xmin=1/aspect_ratio(1)-options.axispadding(1);
 xmax=(n_layers)/aspect_ratio(1)+options.axispadding(1);
 ymin=min(xyl(:,2));
@@ -159,10 +160,7 @@ zmin=min(xyl(:,3));
 zmin=(zmin-options.axispadding(3));
 zmax=max(xyl(:,3));
 zmax=(zmax+options.axispadding(3));
-axis equal
-axis([xmin,xmax,ymin,ymax,zmin,zmax]);
-set(gca,'clipping','off')
-hold on
+
 [h_nodes_out, h_edges_out]=GraphPlot(xyl,AS,plot_options);
 
 if options.drawlayers
