@@ -38,17 +38,17 @@ function [h_nodes_out,h_edges_out]=GraphPlot(xy,W,varargin)
 %     the same as for LineSpec)
 %
 % pointsize: size of nodes (defaults to 7) can be scalar, or a vector with
-% one value for each node
+%   one value for each node
 %
 % edgewidth: linewidth of edges
 %
 % nodecolors: colormap for coloring nodes (using the weights provided by
-% scores) (defaults to distinguishable colors, with 0 drawn black)
+%   scores) (defaults to distinguishable colors, with 0 drawn black)
 %
 % nodecolorlim: clim for nodecolors (default: [min(SCORES), max(SCORES)])
 %
 % edgecolors: colormap for coloring edges using edge weights (defaults to
-% grayscale)
+%   grayscale)
 %
 % edgecolorlim: clim for edgecolors (default: [min(edgeweight,0),
 % max(edgeweight)])
@@ -56,7 +56,20 @@ function [h_nodes_out,h_edges_out]=GraphPlot(xy,W,varargin)
 % randedges: randomise edge weights: 0: actual egeweights, 1: uniformly random
 %
 % edgethreshold: ignore edges below this weight (after randomised
-% edgeweights)
+%   edgeweights)
+%
+% legendlabels: labels for legend
+%
+% baseradius: Rescale nodes and edges in case of directed networks or 3D
+%   plots
+%
+% axispadding: Extra space to add to axis
+%
+% aspectratio: Rescale coordinates 
+%
+% view: change view (note that it is advisable to fix the view before
+%   plotting for nodes and edges to have the correct size in case of 3D
+%   plots or directed networks)
 %
 % This code uses the distinguishable_colors function available from
 % http://www.mathworks.co.uk/matlabcentral/fileexchange/29702-generate-maximally-perceptually-distinct-colors
@@ -134,20 +147,6 @@ parse(parseArgs,varargin{:});
 options=parseArgs.Results;
 options.isset=@(opt) ~isempty(options.(opt));
 
-
-% if ~isempty(varargin)
-%     if ischar(varargin{1})||isstruct(varargin{1})
-%         options.set(varargin);
-%     else
-%         % assume old form of function given (backwards compatibility)
-%         names=options.options;
-%         input=struct([]);
-%         for i=1:length(varargin)
-%             input(1).(names{i})=varargin{i};
-%         end
-%         options.set(input);
-%     end
-% end
 % make scores full matrix
 options.scores=full(options.scores);
 if isvector(options.scores)

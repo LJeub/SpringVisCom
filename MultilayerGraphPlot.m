@@ -1,4 +1,93 @@
-function MultilayerGraphPlot(xy,A,varargin)
+function [h_nodes, h_edges, h_layers]=MultilayerGraphPlot(xy,A,varargin)
+% [h_nodes,h_edges]=GRAPHPLOT(xy,A,options)
+%
+% This program was written to take in xy-coordinates for a multilayer network
+% as well as an array of adjacency matrices for each layer and draws each 
+% layer of the network with the same coordinates in a different plane in
+% 3D-space. Coordinates can be computed using MultilayerSpringVisCom.m
+% (optionally emphasisng community structure) or by using other functions
+% on the aggregate network. This program accepts a number of key-value
+% options to fine-tune the layout.
+%
+% Inputs:
+%
+% xy: matrix of xy-coordinates for each physical node in the multilayer network
+%
+% A: Cell array of adjacency matrices for each layer
+%
+% Outputs:
+%
+% h_nodes: vector of node handles
+%
+% h_edges: handle to edges (either a single patch object or individual
+%	lines depending on colour options)
+%
+% h_layers: handle to layer plane patches
+%
+% Optional Variables: (can be provided as an options struct or key-value
+% pairs)
+%
+% alpha: factor for edge strength
+%
+% scores: vector with weights for each node (e.g. communities), used to
+%       assign node colors from the colormap given by nodecolors and nodecolorlim
+%       If a matrix is given for scores, the column of the matrix are
+%       interpreted as different aspects, and the code draws a pie-chart
+%       for each node, showing a nodes share of each aspect. This can be
+%       useful e.g. for visualising overlapping communities. This variant
+%       ignores the shapes option.
+%
+% shapes: marker shapes for nodes, either a single shape, giving all nodes the
+%     same shape, or a vector of shapes, one for each node. (possible shapes are
+%     the same as for LineSpec)
+%
+% pointsize: size of nodes (defaults to 7) can be scalar, or a vector with
+% one value for each node
+%
+% edgewidth: linewidth of edges
+%
+% nodecolors: colormap for coloring nodes (using the weights provided by
+% scores) (defaults to distinguishable colors, with 0 drawn black)
+%
+% nodecolorlim: clim for nodecolors (default: [min(SCORES), max(SCORES)])
+%
+% edgecolors: colormap for coloring edges using edge weights (defaults to
+% grayscale)
+%
+% edgecolorlim: clim for edgecolors (default: [min(edgeweight,0),
+% max(edgeweight)])
+%
+% randedges: randomise edge weights: 0: actual egeweights, 1: uniformly random
+%
+% edgethreshold: ignore edges below this weight (after randomised
+% edgeweights)
+%
+% axispadding: extra padding around coordinates
+%
+% layercolor: color for layer planes ([0.5,0.5,0.5])
+%
+% layeralpha: transparency level for layer planes (0.1)
+%
+% layerlabels: labels for layer planes ([])
+%
+% labelfont: font for layer labels ('Helvetica')
+%
+% labelrotation: rotation for layer labels (30)
+%
+% aspectratio: Aspect ratio to use to rescale coordinates ([1,1,1])
+%
+% view: View specification ([-15, 30])
+%
+% drawlayers: Bool option to switch of drawing layer planes (true)
+%
+% This code uses the distinguishable_colors function available from
+% http://www.mathworks.co.uk/matlabcentral/fileexchange/29702-generate-maximally-perceptually-distinct-colors
+
+% Version: 1.2
+% Date: Tue 13 May 2014 17:03:19 BST
+% Author: Lucas G. S. Jeub
+% Email: jeub@maths.ox.ac.uk
+
 layer_width=length(A{1});
 n_layers=length(A);
 N=layer_width*n_layers;
@@ -74,7 +163,7 @@ axis equal
 axis([xmin,xmax,ymin,ymax,zmin,zmax]);
 set(gca,'clipping','off')
 hold on
-GraphPlot(xyl,AS,plot_options);
+[h_nodes_out, h_edges_out]=GraphPlot(xyl,AS,plot_options);
 
 if options.drawlayers
     for i=1:n_layers
@@ -82,7 +171,10 @@ if options.drawlayers
             [zmin,zmin,zmax,zmax],options.layercolor,'linestyle','none');
     end
     set(patch_h,'facealpha',options.layeralpha);
+else
+    patch_h=[];
 end
+
 axis equal
 axis([xmin,xmax,ymin,ymax,zmin,zmax]);
 set(gca,'clipping','off')
@@ -96,4 +188,11 @@ end
 
 set(gca,'ydir','reverse')
 
+if nargout>0
+    h_nodes=h_nodes_out;
+    h_edges=h_edges_out;
+    h_layers=patch_h;
+end
+
+end
 
