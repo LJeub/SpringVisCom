@@ -1,10 +1,10 @@
 function alpha=wolfe_step(x,dir,alpha_0,c_1,c_2,gradient,energy)
 % find step size satisfying Wolfe conditions with parameters c_1, c_2
 
-% Version: 1.2
-% Date: Tue 13 May 2014 17:03:19 BST
-% Author: Lucas G. S. Jeub
-% Email: jeub@maths.ox.ac.uk
+% Version: 1.3
+% Date: Wed  9 May 2018 15:25:32 CEST
+% Author: Lucas Jeub
+% Email: ljeub@iu.edu
 
 alpha=alpha_0;
 alpha_low=0;

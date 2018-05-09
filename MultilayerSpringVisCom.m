@@ -81,10 +81,10 @@ function xy=MultilayerSpringVisCom(A,S,varargin)
 % charged particles, such that nodes in different communities repel each
 % other.
 
-% Version: 1.2
-% Date: Tue 13 May 2014 17:03:19 BST
-% Author: Lucas G. S. Jeub
-% Email: jeub@maths.ox.ac.uk
+% Version: 1.3
+% Date: Wed  9 May 2018 15:25:32 CEST
+% Author: Lucas Jeub
+% Email: ljeub@iu.edu
 parseArgs=inputParser();
 parseArgs.KeepUnmatched=true;
 addParameter(parseArgs,'background_field',0);

@@ -83,10 +83,10 @@ function [h_nodes, h_edges, h_layers]=MultilayerGraphPlot(xy,A,varargin)
 % This code uses the distinguishable_colors function available from
 % http://www.mathworks.co.uk/matlabcentral/fileexchange/29702-generate-maximally-perceptually-distinct-colors
 
-% Version: 1.2
-% Date: Tue 13 May 2014 17:03:19 BST
-% Author: Lucas G. S. Jeub
-% Email: jeub@maths.ox.ac.uk
+% Version: 1.3
+% Date: Wed  9 May 2018 15:25:32 CEST
+% Author: Lucas Jeub
+% Email: ljeub@iu.edu
 
 layer_width=length(A{1});
 n_layers=length(A);

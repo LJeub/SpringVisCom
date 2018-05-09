@@ -1,9 +1,9 @@
 classdef spring_system < matlab.mixin.Copyable
 % SPRING_SYSTEM spring system class for SpringVisCom
-% Version: 1.2
-% Date: Tue 13 May 2014 17:03:19 BST
-% Author: Lucas G. S. Jeub
-% Email: jeub@maths.ox.ac.uk
+% Version: 1.3
+% Date: Wed  9 May 2018 15:25:32 CEST
+% Author: Lucas Jeub
+% Email: ljeub@iu.edu
     
     %% properties
     properties (SetAccess=private)
