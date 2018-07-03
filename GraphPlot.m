@@ -74,10 +74,10 @@ function [h_nodes_out,h_edges_out]=GraphPlot(xy,W,varargin)
 % This code uses the distinguishable_colors function available from
 % http://www.mathworks.co.uk/matlabcentral/fileexchange/29702-generate-maximally-perceptually-distinct-colors
 
-% Version: 1.3
-% Date: Wed  9 May 2018 15:25:31 CEST
+% Version: 1.3.1
+% Date: Tue  3 Jul 2018 12:38:16 CEST
 % Author: Lucas Jeub
-% Email: ljeub@iu.edu
+% Email: lucasjeub@gmail.com
 
 
 

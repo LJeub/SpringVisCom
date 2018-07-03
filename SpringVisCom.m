@@ -88,10 +88,10 @@ function [xy,xyc,energy,energy_c]=SpringVisCom(A,S,varargin)
 % charged particles, such that nodes in different communities repel each
 % other.
 
-% Version: 1.3
-% Date: Wed  9 May 2018 15:25:32 CEST
+% Version: 1.3.1
+% Date: Tue  3 Jul 2018 12:38:16 CEST
 % Author: Lucas Jeub
-% Email: ljeub@iu.edu
+% Email: lucasjeub@gmail.com
 
 
 %% check input
